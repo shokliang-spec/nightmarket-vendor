@@ -242,6 +242,22 @@
       margin-left: 2px;
     }
 
+    /* Social icons in labels */
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      background: var(--gold-dim);
+      color: #0f0e0a;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      margin-right: 4px;
+      vertical-align: middle;
+      letter-spacing: 0;
+    }
+
     /* Photo upload */
     .photo-upload {
       border: 2px dashed var(--border);
@@ -491,34 +507,53 @@
       <div class="select-group">
         <div>
           <div class="select-label">排</div>
-          <select id="row_number" onchange="updateStep()">
+          <select id="row_number" onchange="onRowChange()">
             <option value="">選擇</option>
-            <option value="1">第 1 排</option>
-            <option value="2">第 2 排</option>
-            <option value="3">第 3 排</option>
-            <option value="4">第 4 排</option>
-            <option value="5">第 5 排</option>
-            <option value="6">第 6 排</option>
-            <option value="7">第 7 排</option>
-            <option value="8">第 8 排</option>
+            <option>一排</option>
+            <option>二排</option>
+            <option>三排</option>
+            <option>四排</option>
+            <option>五排</option>
+            <option>六排</option>
+            <option>七排</option>
+            <option>八排</option>
+            <option>九排</option>
+            <option>十排</option>
+            <option>十一排</option>
+            <option>十二排</option>
+            <option>13排</option>
+            <option>十四排</option>
+            <option>15排</option>
+            <option>十六排</option>
+            <option>十七排</option>
+            <option>十八排</option>
+            <option>十九排</option>
+            <option>二十排</option>
+            <option>二十一排</option>
+            <option>二十二排</option>
+            <option>二十三排</option>
+            <option>24排</option>
+            <option>25排</option>
+            <option>26排</option>
+            <option>27排</option>
+            <option>28排</option>
+            <option>29排</option>
+            <option>30排</option>
+            <option>31排</option>
+            <option>32排</option>
+            <option>33排</option>
+            <option>34排</option>
+            <option>35排</option>
+            <option>36排</option>
+            <option>37排</option>
+            <option>A排</option>
+            <option>B排</option>
           </select>
         </div>
         <div>
           <div class="select-label">號</div>
           <select id="stall_number" onchange="updateStep()">
-            <option value="">選擇</option>
-            <option value="1">1 號</option>
-            <option value="2">2 號</option>
-            <option value="3">3 號</option>
-            <option value="4">4 號</option>
-            <option value="5">5 號</option>
-            <option value="6">6 號</option>
-            <option value="7">7 號</option>
-            <option value="8">8 號</option>
-            <option value="9">9 號</option>
-            <option value="10">10 號</option>
-            <option value="11">11 號</option>
-            <option value="12">12 號</option>
+            <option value="">請先選排</option>
           </select>
         </div>
       </div>
@@ -546,13 +581,52 @@
         <div class="char-counter"><span id="descCount">0</span> / 200</div>
       </div>
 
+    </div>
+
+    <!-- Section 3: 聯絡資訊 -->
+    <div class="section">
+      <div class="section-title">聯絡資訊</div>
+
+      <div class="select-group" style="grid-template-columns:1fr 1fr">
+        <div class="field" style="margin-bottom:0">
+          <label>聯絡人姓名</label>
+          <input type="text" id="contact_name" placeholder="姓名" maxlength="20" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>聯絡電話</label>
+          <input type="tel" id="contact_phone" placeholder="09xx-xxx-xxx" maxlength="20" />
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:14px">
+        <label>Line ID</label>
+        <input type="text" id="line_id" placeholder="Line ID" maxlength="60" />
+      </div>
+
+      <div class="section-title" style="margin-top:4px;margin-bottom:12px">社群媒體</div>
+
       <div class="field">
-        <label>聯絡方式</label>
-        <input type="text" id="contact" placeholder="電話 / Line / Instagram" maxlength="60" />
+        <label><span class="social-icon">f</span> Facebook</label>
+        <input type="text" id="facebook" placeholder="Facebook 頁面網址或名稱" maxlength="100" />
+      </div>
+
+      <div class="field">
+        <label><span class="social-icon">ig</span> Instagram</label>
+        <input type="text" id="instagram" placeholder="@帳號名稱" maxlength="60" />
+      </div>
+
+      <div class="field">
+        <label><span class="social-icon">tk</span> 抖音 / TikTok</label>
+        <input type="text" id="tiktok" placeholder="@帳號名稱" maxlength="60" />
+      </div>
+
+      <div class="field">
+        <label><span class="social-icon">th</span> Threads</label>
+        <input type="text" id="threads" placeholder="@帳號名稱" maxlength="60" />
       </div>
     </div>
 
-    <!-- Section 3: 攤位照片 -->
+    <!-- Section 4: 攤位照片 -->
     <div class="section">
       <div class="section-title">攤位照片</div>
       <div class="photo-upload" id="photoUpload">
@@ -583,10 +657,38 @@
     document.getElementById(countId).textContent = el.value.length;
   }
 
+  const ROW_STALLS = {
+    "一排":32,"二排":32,"三排":32,"四排":32,"五排":32,"六排":32,"七排":32,"八排":32,
+    "九排":32,"十排":32,"十一排":32,"十二排":32,"13排":47,"十四排":36,"15排":29,
+    "十六排":43,"十七排":43,"十八排":44,"十九排":45,"二十排":46,"二十一排":46,
+    "二十二排":46,"二十三排":6,"24排":5,"25排":5,"26排":5,"27排":5,"28排":5,
+    "29排":5,"30排":5,"31排":5,"32排":5,"33排":5,"34排":5,
+    "35排":["1","2","3","3.5","4"],"36排":7,"37排":5,"A排":32,"B排":32
+  };
+
   function getSelectedDays() {
     return ['day_thu','day_fri','day_sat','day_sun']
       .filter(id => document.getElementById(id).checked)
       .map(id => document.getElementById(id).value);
+  }
+
+  function onRowChange() {
+    const row = document.getElementById('row_number').value;
+    const stallSel = document.getElementById('stall_number');
+    stallSel.innerHTML = '<option value="">選擇</option>';
+    if (row && ROW_STALLS[row]) {
+      const stalls = ROW_STALLS[row];
+      const list = typeof stalls === 'number'
+        ? Array.from({length: stalls}, (_, i) => String(i + 1))
+        : stalls;
+      list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s + ' 號';
+        stallSel.appendChild(opt);
+      });
+    }
+    updateStep();
   }
 
   function updateStep() {
@@ -678,12 +780,18 @@
       const dayStr = days.join('、');
       const record = {
         day_of_week: dayStr,
-        row_number: parseInt(row),
-        stall_number: parseInt(num),
+        row_number: row,
+        stall_number: num,
         stall_name: name,
         products: document.getElementById('products').value.trim() || null,
         description: document.getElementById('description').value.trim() || null,
-        contact: document.getElementById('contact').value.trim() || null,
+        contact_name: document.getElementById('contact_name').value.trim() || null,
+        contact_phone: document.getElementById('contact_phone').value.trim() || null,
+        line_id: document.getElementById('line_id').value.trim() || null,
+        facebook: document.getElementById('facebook').value.trim() || null,
+        instagram: document.getElementById('instagram').value.trim() || null,
+        tiktok: document.getElementById('tiktok').value.trim() || null,
+        threads: document.getElementById('threads').value.trim() || null,
         photo_url: photoUrl,
         is_active: true
       };
@@ -698,7 +806,7 @@
 
       document.getElementById('successDetail').innerHTML = `
         <div class="success-detail-row"><span>星期</span><span>${dayStr}</span></div>
-        <div class="success-detail-row"><span>攤位</span><span>第${row}排 ${num}號</span></div>
+        <div class="success-detail-row"><span>攤位</span><span>${row} ${num}號</span></div>
         <div class="success-detail-row"><span>攤名</span><span>${name}</span></div>
         ${record.products ? `<div class="success-detail-row"><span>商品</span><span>${record.products}</span></div>` : ''}
         ${photoUrl ? `<div class="success-detail-row"><span>照片</span><span>✓ 已上傳</span></div>` : ''}
@@ -718,11 +826,18 @@
       document.getElementById(id).checked = false;
     });
     document.getElementById('row_number').value = '';
+    document.getElementById('stall_number').innerHTML = '<option value="">請先選排</option>';
     document.getElementById('stall_number').value = '';
     document.getElementById('stall_name').value = '';
     document.getElementById('products').value = '';
     document.getElementById('description').value = '';
-    document.getElementById('contact').value = '';
+    document.getElementById('contact_name').value = '';
+    document.getElementById('contact_phone').value = '';
+    document.getElementById('line_id').value = '';
+    document.getElementById('facebook').value = '';
+    document.getElementById('instagram').value = '';
+    document.getElementById('tiktok').value = '';
+    document.getElementById('threads').value = '';
     document.getElementById('photoFile').value = '';
     document.getElementById('photoPreview').style.display = 'none';
     document.getElementById('nameCount').textContent = '0';
