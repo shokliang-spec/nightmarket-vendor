@@ -59,6 +59,16 @@
       margin-bottom: 32px;
     }
 
+    .header-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 8px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
     .header-lantern {
       font-size: 2.4rem;
       margin-bottom: 8px;
@@ -134,10 +144,44 @@
       border-radius: 2px;
     }
 
+    /* Day checkboxes */
+    .day-checks {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .day-check {
+      display: none;
+    }
+
+    .day-check + label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+      user-select: none;
+    }
+
+    .day-check:checked + label {
+      border-color: var(--gold);
+      background: rgba(212,168,67,0.12);
+      color: var(--gold);
+    }
+
     /* Select group */
     .select-group {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
@@ -404,7 +448,7 @@
 
   <!-- Header -->
   <div class="header">
-    <span class="header-lantern">🏮</span>
+    <img src="logo.png" alt="花園夜市" class="header-logo" />
     <h1>花 園 夜 市</h1>
     <p>攤商資料登錄系統</p>
   </div>
@@ -431,20 +475,20 @@
     <!-- Section 1: 攤位位置 -->
     <div class="section">
       <div class="section-title">攤位位置</div>
+
+      <div class="select-label" style="margin-bottom:8px">擺攤星期（可多選）</div>
+      <div class="day-checks">
+        <input class="day-check" type="checkbox" id="day_thu" value="週四" onchange="updateStep()">
+        <label for="day_thu">週四</label>
+        <input class="day-check" type="checkbox" id="day_fri" value="週五" onchange="updateStep()">
+        <label for="day_fri">週五</label>
+        <input class="day-check" type="checkbox" id="day_sat" value="週六" onchange="updateStep()">
+        <label for="day_sat">週六</label>
+        <input class="day-check" type="checkbox" id="day_sun" value="週日" onchange="updateStep()">
+        <label for="day_sun">週日</label>
+      </div>
+
       <div class="select-group">
-        <div>
-          <div class="select-label">星期</div>
-          <select id="day_of_week" onchange="updateStep()">
-            <option value="">選擇</option>
-            <option>週一</option>
-            <option>週二</option>
-            <option>週三</option>
-            <option>週四</option>
-            <option>週五</option>
-            <option>週六</option>
-            <option>週日</option>
-          </select>
-        </div>
         <div>
           <div class="select-label">排</div>
           <select id="row_number" onchange="updateStep()">
@@ -533,14 +577,20 @@
 <script>
   const SUPABASE_URL = 'https://evzqyplqbdrzikkvjtvh.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2enF5cGxxYmRyemlra3ZqdHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzODQ2MDAsImV4cCI6MjA5NDk2MDYwMH0.6GBy9iaanu3-ghBaJGdcFRQfOuMaDtP2RouwUIgMEek';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   function countChars(el, countId, max) {
     document.getElementById(countId).textContent = el.value.length;
   }
 
+  function getSelectedDays() {
+    return ['day_thu','day_fri','day_sat','day_sun']
+      .filter(id => document.getElementById(id).checked)
+      .map(id => document.getElementById(id).value);
+  }
+
   function updateStep() {
-    const day = document.getElementById('day_of_week').value;
+    const days = getSelectedDays();
     const row = document.getElementById('row_number').value;
     const num = document.getElementById('stall_number').value;
     const name = document.getElementById('stall_name').value.trim();
@@ -549,11 +599,11 @@
     const dot1 = document.getElementById('dot1');
     const dot2 = document.getElementById('dot2');
 
-    if (day && row && num) {
+    if (days.length && row && num) {
       dot0.className = 'step-dot done';
       dot1.className = 'step-dot active';
     }
-    if (day && row && num && name) {
+    if (days.length && row && num && name) {
       dot1.className = 'step-dot done';
       dot2.className = 'step-dot active';
     }
@@ -591,12 +641,12 @@
   async function submitForm() {
     hideStatus();
 
-    const day = document.getElementById('day_of_week').value;
+    const days = getSelectedDays();
     const row = document.getElementById('row_number').value;
     const num = document.getElementById('stall_number').value;
     const name = document.getElementById('stall_name').value.trim();
 
-    if (!day) { showStatus('請選擇星期', 'error'); return; }
+    if (!days.length) { showStatus('請選擇擺攤星期', 'error'); return; }
     if (!row) { showStatus('請選擇排數', 'error'); return; }
     if (!num) { showStatus('請選擇攤號', 'error'); return; }
     if (!name) { showStatus('請填寫攤名', 'error'); return; }
@@ -613,20 +663,21 @@
       if (photoFile) {
         const ext = photoFile.name.split('.').pop();
         const filename = `${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
           .from('vendor-photos')
           .upload(filename, photoFile, { contentType: photoFile.type });
 
         if (uploadError) throw new Error('照片上傳失敗：' + uploadError.message);
 
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = supabaseClient.storage
           .from('vendor-photos')
           .getPublicUrl(filename);
         photoUrl = urlData.publicUrl;
       }
 
+      const dayStr = days.join('、');
       const record = {
-        day_of_week: day,
+        day_of_week: dayStr,
         row_number: parseInt(row),
         stall_number: parseInt(num),
         stall_name: name,
@@ -637,7 +688,7 @@
         is_active: true
       };
 
-      const { error: insertError } = await supabase.from('vendors').insert([record]);
+      const { error: insertError } = await supabaseClient.from('vendors').insert([record]);
       if (insertError) throw new Error('資料儲存失敗：' + insertError.message);
 
       // Success
@@ -646,7 +697,8 @@
       successScreen.classList.add('show');
 
       document.getElementById('successDetail').innerHTML = `
-        <div class="success-detail-row"><span>攤位</span><span>${day} 第${row}排 ${num}號</span></div>
+        <div class="success-detail-row"><span>星期</span><span>${dayStr}</span></div>
+        <div class="success-detail-row"><span>攤位</span><span>第${row}排 ${num}號</span></div>
         <div class="success-detail-row"><span>攤名</span><span>${name}</span></div>
         ${record.products ? `<div class="success-detail-row"><span>商品</span><span>${record.products}</span></div>` : ''}
         ${photoUrl ? `<div class="success-detail-row"><span>照片</span><span>✓ 已上傳</span></div>` : ''}
@@ -662,7 +714,9 @@
   function resetForm() {
     document.getElementById('formContent').style.display = 'block';
     document.getElementById('successScreen').classList.remove('show');
-    document.getElementById('day_of_week').value = '';
+    ['day_thu','day_fri','day_sat','day_sun'].forEach(id => {
+      document.getElementById(id).checked = false;
+    });
     document.getElementById('row_number').value = '';
     document.getElementById('stall_number').value = '';
     document.getElementById('stall_name').value = '';
