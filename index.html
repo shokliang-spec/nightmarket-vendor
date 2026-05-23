@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>花園夜市・攤商登錄</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #0f0e0a;
+      --surface: #1a1813;
+      --surface2: #242118;
+      --border: #3a3520;
+      --gold: #d4a843;
+      --gold-light: #f0c96a;
+      --gold-dim: #8a6820;
+      --text: #f0e8d0;
+      --text-dim: #9a8e72;
+      --red: #c94a2a;
+      --green: #4a8c5c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans TC', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Lantern background decoration */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(212,168,67,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(201,74,42,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 32px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .header-lantern {
+      font-size: 2.4rem;
+      margin-bottom: 8px;
+      display: block;
+      animation: sway 4s ease-in-out infinite;
+    }
+
+    @keyframes sway {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+    }
+
+    .header h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      line-height: 1.3;
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Step indicator */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s;
+    }
+
+    .step-dot.active { background: var(--gold); transform: scale(1.3); }
+    .step-dot.done { background: var(--gold-dim); }
+
+    /* Section card */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 3px; height: 14px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+
+    /* Select group */
+    .select-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .select-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold-dim);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a8e72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .required {
+      color: var(--gold);
+      margin-left: 2px;
+    }
+
+    /* Photo upload */
+    .photo-upload {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .photo-upload:hover {
+      border-color: var(--gold-dim);
+      background: rgba(212,168,67,0.04);
+    }
+
+    .photo-upload input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .photo-upload-icon { font-size: 2rem; margin-bottom: 8px; }
+
+    .photo-upload p {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    .photo-preview {
+      display: none;
+      margin-top: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 200px;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      border: none;
+      border-radius: 10px;
+      color: #0f0e0a;
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(212,168,67,0.3);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Status */
+    .status {
+      display: none;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .status.error {
+      background: rgba(201,74,42,0.15);
+      border: 1px solid rgba(201,74,42,0.4);
+      color: #ff8060;
+      display: block;
+    }
+
+    .status.loading {
+      background: rgba(212,168,67,0.1);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      display: block;
+    }
+
+    /* Success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .success-screen.show { display: block; }
+
+    .success-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-screen h2 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .success-screen p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+
+    .success-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 24px 0;
+      text-align: left;
+    }
+
+    .success-detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .success-detail-row:last-child { border-bottom: none; }
+    .success-detail-row span:first-child { color: var(--text-dim); }
+    .success-detail-row span:last-child { color: var(--text); font-weight: 500; }
+
+    .btn-again {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      padding: 10px 24px;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-again:hover {
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    /* Form wrapper */
+    .form-content { display: block; }
+
+    /* Char counter */
+    .char-counter {
+      text-align: right;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: #0f0e0a;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Mobile refinements */
+    @media (max-width: 400px) {
+      .select-group { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="header-lantern">🏮</span>
+    <h1>花 園 夜 市</h1>
+    <p>攤商資料登錄系統</p>
+  </div>
+
+  <!-- Step dots -->
+  <div class="steps">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+  </div>
+
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✅</div>
+    <h2>登錄成功！</h2>
+    <p>您的攤商資料已送出<br>格主將會收到通知</p>
+    <div class="success-detail" id="successDetail"></div>
+    <button class="btn-again" onclick="resetForm()">再次填寫</button>
+  </div>
+
+  <!-- Form -->
+  <div class="form-content" id="formContent">
+
+    <!-- Section 1: 攤位位置 -->
+    <div class="section">
+      <div class="section-title">攤位位置</div>
+      <div class="select-group">
+        <div>
+          <div class="select-label">星期</div>
+          <select id="day_of_week" onchange="updateStep()">
+            <option value="">選擇</option>
+            <option>週一</option>
+            <option>週二</option>
+            <option>週三</option>
+            <option>週四</option>
+            <option>週五</option>
+            <option>週六</option>
+            <option>週日</option>
+          </select>
+        </div>
+        <div>
+          <div class="select-label">排</div>
+          <select id="row_number" onchange="updateStep()">
+            <option value="">選擇</option>
+            <option value="1">第 1 排</option>
+            <option value="2">第 2 排</option>
+            <option value="3">第 3 排</option>
+            <option value="4">第 4 排</option>
+            <option value="5">第 5 排</option>
+            <option value="6">第 6 排</option>
+            <option value="7">第 7 排</option>
+            <option value="8">第 8 排</option>
+          </select>
+        </div>
+        <div>
+          <div class="select-label">號</div>
+          <select id="stall_number" onchange="updateStep()">
+            <option value="">選擇</option>
+            <option value="1">1 號</option>
+            <option value="2">2 號</option>
+            <option value="3">3 號</option>
+            <option value="4">4 號</option>
+            <option value="5">5 號</option>
+            <option value="6">6 號</option>
+            <option value="7">7 號</option>
+            <option value="8">8 號</option>
+            <option value="9">9 號</option>
+            <option value="10">10 號</option>
+            <option value="11">11 號</option>
+            <option value="12">12 號</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: 攤商資料 -->
+    <div class="section">
+      <div class="section-title">攤商資料</div>
+
+      <div class="field">
+        <label>攤名 <span class="required">*</span></label>
+        <input type="text" id="stall_name" placeholder="例：阿明蚵仔煎" maxlength="30" oninput="updateStep(); countChars(this, 'nameCount', 30)" />
+        <div class="char-counter"><span id="nameCount">0</span> / 30</div>
+      </div>
+
+      <div class="field">
+        <label>販售商品</label>
+        <input type="text" id="products" placeholder="例：蚵仔煎、米血糕、甜不辣" maxlength="60" oninput="countChars(this, 'prodCount', 60)" />
+        <div class="char-counter"><span id="prodCount">0</span> / 60</div>
+      </div>
+
+      <div class="field">
+        <label>攤位簡介</label>
+        <textarea id="description" placeholder="介紹您的攤位特色、招牌商品、故事…" maxlength="200" oninput="countChars(this, 'descCount', 200)"></textarea>
+        <div class="char-counter"><span id="descCount">0</span> / 200</div>
+      </div>
+
+      <div class="field">
+        <label>聯絡方式</label>
+        <input type="text" id="contact" placeholder="電話 / Line / Instagram" maxlength="60" />
+      </div>
+    </div>
+
+    <!-- Section 3: 攤位照片 -->
+    <div class="section">
+      <div class="section-title">攤位照片</div>
+      <div class="photo-upload" id="photoUpload">
+        <input type="file" id="photoFile" accept="image/*" onchange="previewPhoto(this)" />
+        <div class="photo-upload-icon">📷</div>
+        <p>點擊上傳攤位照片<br><small style="opacity:0.6">JPG / PNG，最大 5MB</small></p>
+      </div>
+      <div class="photo-preview" id="photoPreview">
+        <img id="photoImg" src="" alt="攤位照片預覽" />
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+      送出登錄資料
+    </button>
+    <div class="status" id="statusMsg"></div>
+
+  </div><!-- /form-content -->
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://evzqyplqbdrzikkvjtvh.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2enF5cGxxYmRyemlra3ZqdHZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzODQ2MDAsImV4cCI6MjA5NDk2MDYwMH0.6GBy9iaanu3-ghBaJGdcFRQfOuMaDtP2RouwUIgMEek';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function countChars(el, countId, max) {
+    document.getElementById(countId).textContent = el.value.length;
+  }
+
+  function updateStep() {
+    const day = document.getElementById('day_of_week').value;
+    const row = document.getElementById('row_number').value;
+    const num = document.getElementById('stall_number').value;
+    const name = document.getElementById('stall_name').value.trim();
+
+    const dot0 = document.getElementById('dot0');
+    const dot1 = document.getElementById('dot1');
+    const dot2 = document.getElementById('dot2');
+
+    if (day && row && num) {
+      dot0.className = 'step-dot done';
+      dot1.className = 'step-dot active';
+    }
+    if (day && row && num && name) {
+      dot1.className = 'step-dot done';
+      dot2.className = 'step-dot active';
+    }
+  }
+
+  function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        showStatus('照片檔案過大，請選擇 5MB 以下的圖片', 'error');
+        input.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('photoImg').src = e.target.result;
+        document.getElementById('photoPreview').style.display = 'block';
+        document.getElementById('photoUpload').style.borderStyle = 'solid';
+        document.getElementById('photoUpload').style.borderColor = 'var(--gold-dim)';
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function showStatus(msg, type) {
+    const el = document.getElementById('statusMsg');
+    el.className = 'status ' + type;
+    el.innerHTML = msg;
+  }
+
+  function hideStatus() {
+    document.getElementById('statusMsg').className = 'status';
+  }
+
+  async function submitForm() {
+    hideStatus();
+
+    const day = document.getElementById('day_of_week').value;
+    const row = document.getElementById('row_number').value;
+    const num = document.getElementById('stall_number').value;
+    const name = document.getElementById('stall_name').value.trim();
+
+    if (!day) { showStatus('請選擇星期', 'error'); return; }
+    if (!row) { showStatus('請選擇排數', 'error'); return; }
+    if (!num) { showStatus('請選擇攤號', 'error'); return; }
+    if (!name) { showStatus('請填寫攤名', 'error'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>送出中…';
+    showStatus('正在送出資料，請稍候…', 'loading');
+
+    try {
+      let photoUrl = null;
+      const photoFile = document.getElementById('photoFile').files[0];
+
+      if (photoFile) {
+        const ext = photoFile.name.split('.').pop();
+        const filename = `${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('vendor-photos')
+          .upload(filename, photoFile, { contentType: photoFile.type });
+
+        if (uploadError) throw new Error('照片上傳失敗：' + uploadError.message);
+
+        const { data: urlData } = supabase.storage
+          .from('vendor-photos')
+          .getPublicUrl(filename);
+        photoUrl = urlData.publicUrl;
+      }
+
+      const record = {
+        day_of_week: day,
+        row_number: parseInt(row),
+        stall_number: parseInt(num),
+        stall_name: name,
+        products: document.getElementById('products').value.trim() || null,
+        description: document.getElementById('description').value.trim() || null,
+        contact: document.getElementById('contact').value.trim() || null,
+        photo_url: photoUrl,
+        is_active: true
+      };
+
+      const { error: insertError } = await supabase.from('vendors').insert([record]);
+      if (insertError) throw new Error('資料儲存失敗：' + insertError.message);
+
+      // Success
+      document.getElementById('formContent').style.display = 'none';
+      const successScreen = document.getElementById('successScreen');
+      successScreen.classList.add('show');
+
+      document.getElementById('successDetail').innerHTML = `
+        <div class="success-detail-row"><span>攤位</span><span>${day} 第${row}排 ${num}號</span></div>
+        <div class="success-detail-row"><span>攤名</span><span>${name}</span></div>
+        ${record.products ? `<div class="success-detail-row"><span>商品</span><span>${record.products}</span></div>` : ''}
+        ${photoUrl ? `<div class="success-detail-row"><span>照片</span><span>✓ 已上傳</span></div>` : ''}
+      `;
+
+    } catch (err) {
+      showStatus('❌ ' + err.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '送出登錄資料';
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('formContent').style.display = 'block';
+    document.getElementById('successScreen').classList.remove('show');
+    document.getElementById('day_of_week').value = '';
+    document.getElementById('row_number').value = '';
+    document.getElementById('stall_number').value = '';
+    document.getElementById('stall_name').value = '';
+    document.getElementById('products').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('contact').value = '';
+    document.getElementById('photoFile').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('nameCount').textContent = '0';
+    document.getElementById('prodCount').textContent = '0';
+    document.getElementById('descCount').textContent = '0';
+    ['dot0','dot1','dot2'].forEach((id,i) => {
+      document.getElementById(id).className = 'step-dot' + (i===0 ? ' active' : '');
+    });
+    hideStatus();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = false;
+    btn.innerHTML = '送出登錄資料';
+  }
+</script>
+</body>
+</html>
