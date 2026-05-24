@@ -178,6 +178,117 @@
       color: var(--gold);
     }
 
+    /* Row groups */
+    .row-group {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .row-group-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .rg-select {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.88rem;
+      padding: 7px 10px;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a8e72' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .rg-select:focus { outline: none; border-color: var(--gold-dim); }
+    .rg-remove {
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .rg-remove:hover { color: var(--red); }
+    .rg-stalls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 28px;
+      align-items: flex-start;
+    }
+    .rg-placeholder { color: var(--text-dim); font-size: 0.78rem; align-self: center; }
+    .btn-add-row {
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 4px;
+    }
+    .btn-add-row:hover { border-color: var(--gold-dim); color: var(--gold); }
+    .btn-add-row:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Stall number checkboxes */
+    .stall-check { display: none; }
+    .stall-check + label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--text-dim);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .stall-check:checked + label {
+      border-color: var(--gold);
+      background: rgba(212,168,67,0.12);
+      color: var(--gold);
+    }
+
+    /* Category radio */
+    .cat-check { display: none; }
+    .cat-check + label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .cat-check:checked + label {
+      border-color: var(--gold);
+      background: rgba(212,168,67,0.12);
+      color: var(--gold);
+    }
+    .cat-checks { display: flex; gap: 8px; flex-wrap: wrap; }
+
     /* Select group */
     .select-group {
       display: grid;
@@ -504,62 +615,76 @@
         <label for="day_sun">週日</label>
       </div>
 
-      <div class="select-group">
-        <div>
-          <div class="select-label">排</div>
-          <select id="row_number" onchange="onRowChange()">
-            <option value="">選擇</option>
-            <option>一排</option>
-            <option>二排</option>
-            <option>三排</option>
-            <option>四排</option>
-            <option>五排</option>
-            <option>六排</option>
-            <option>七排</option>
-            <option>八排</option>
-            <option>九排</option>
-            <option>十排</option>
-            <option>十一排</option>
-            <option>十二排</option>
-            <option>13排</option>
-            <option>十四排</option>
-            <option>15排</option>
-            <option>十六排</option>
-            <option>十七排</option>
-            <option>十八排</option>
-            <option>十九排</option>
-            <option>二十排</option>
-            <option>二十一排</option>
-            <option>二十二排</option>
-            <option>二十三排</option>
-            <option>24排</option>
-            <option>25排</option>
-            <option>26排</option>
-            <option>27排</option>
-            <option>28排</option>
-            <option>29排</option>
-            <option>30排</option>
-            <option>31排</option>
-            <option>32排</option>
-            <option>33排</option>
-            <option>34排</option>
-            <option>35排</option>
-            <option>36排</option>
-            <option>37排</option>
-            <option>A排</option>
-            <option>B排</option>
-          </select>
+      <div class="select-label" style="margin:14px 0 8px">攤位格號（最多3排）</div>
+      <div id="row-groups">
+        <div class="row-group" id="rg-0">
+          <div class="row-group-header">
+            <select class="rg-select" onchange="onRowGroupChange(0)">
+            <option value="">選擇排</option>
+            <option value="一排">1排</option>
+            <option value="二排">2排</option>
+            <option value="三排">3排</option>
+            <option value="四排">4排</option>
+            <option value="五排">5排</option>
+            <option value="六排">6排</option>
+            <option value="七排">7排</option>
+            <option value="八排">8排</option>
+            <option value="九排">9排</option>
+            <option value="十排">10排</option>
+            <option value="十一排">11排</option>
+            <option value="十二排">12排</option>
+            <option value="13排">13排</option>
+            <option value="十四排">14排</option>
+            <option value="15排">15排</option>
+            <option value="十六排">16排</option>
+            <option value="十七排">17排</option>
+            <option value="十八排">18排</option>
+            <option value="十九排">19排</option>
+            <option value="二十排">20排</option>
+            <option value="二十一排">21排</option>
+            <option value="二十二排">22排</option>
+            <option value="二十三排">23排</option>
+            <option value="24排">24排</option>
+            <option value="25排">25排</option>
+            <option value="26排">26排</option>
+            <option value="27排">27排</option>
+            <option value="28排">28排</option>
+            <option value="29排">29排</option>
+            <option value="30排">30排</option>
+            <option value="31排">31排</option>
+            <option value="32排">32排</option>
+            <option value="33排">33排</option>
+            <option value="34排">34排</option>
+            <option value="35排">35排</option>
+            <option value="36排">36排</option>
+            <option value="37排">37排</option>
+            <option value="A排">A排</option>
+            <option value="B排">B排</option>
+            </select>
+            <span class="rg-remove" onclick="removeRowGroup(0)" style="display:none">✕</span>
+          </div>
+          <div class="rg-stalls" id="rg-stalls-0">
+            <span class="rg-placeholder">選排後顯示格號</span>
+          </div>
         </div>
-        <div>
-          <div class="select-label">號</div>
-          <select id="stall_number" onchange="updateStep()">
-            <option value="">請先選排</option>
-          </select>
-        </div>
+      </div>
+      <button class="btn-add-row" id="btn-add-row" onclick="addRowGroup()">＋ 新增另一排</button>
+    </div>
+
+    <!-- Section 2: 攤商類別 -->
+    <div class="section">
+      <div class="section-title">攤商類別</div>
+      <div class="cat-checks">
+        <input class="cat-check" type="radio" name="category" id="cat_food" value="美食">
+        <label for="cat_food">🍜 美食</label>
+        <input class="cat-check" type="radio" name="category" id="cat_goods" value="百貨">
+        <label for="cat_goods">🛍 百貨</label>
+        <input class="cat-check" type="radio" name="category" id="cat_game" value="遊戲">
+        <label for="cat_game">🎯 遊戲</label>
       </div>
     </div>
 
-    <!-- Section 2: 攤商資料 -->
+    <!-- Section 3: 攤商資料 -->
     <div class="section">
       <div class="section-title">攤商資料</div>
 
@@ -672,40 +797,127 @@
       .map(id => document.getElementById(id).value);
   }
 
-  function onRowChange() {
-    const row = document.getElementById('row_number').value;
-    const stallSel = document.getElementById('stall_number');
-    stallSel.innerHTML = '<option value="">選擇</option>';
-    if (row && ROW_STALLS[row]) {
-      const stalls = ROW_STALLS[row];
-      const list = typeof stalls === 'number'
-        ? Array.from({length: stalls}, (_, i) => String(i + 1))
-        : stalls;
-      list.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s;
-        opt.textContent = s + ' 號';
-        stallSel.appendChild(opt);
-      });
+
+
+  // Row groups management
+  let rowGroupCount = 1;
+  const MAX_GROUPS = 3;
+
+  function getRowOptions() {
+    return `<option value="">選擇排</option>
+      <option value="一排">1排</option><option value="二排">2排</option>
+      <option value="三排">3排</option><option value="四排">4排</option>
+      <option value="五排">5排</option><option value="六排">6排</option>
+      <option value="七排">7排</option><option value="八排">8排</option>
+      <option value="九排">9排</option><option value="十排">10排</option>
+      <option value="十一排">11排</option><option value="十二排">12排</option>
+      <option value="13排">13排</option><option value="十四排">14排</option>
+      <option value="15排">15排</option><option value="十六排">16排</option>
+      <option value="十七排">17排</option><option value="十八排">18排</option>
+      <option value="十九排">19排</option><option value="二十排">20排</option>
+      <option value="二十一排">21排</option><option value="二十二排">22排</option>
+      <option value="二十三排">23排</option><option value="24排">24排</option>
+      <option value="25排">25排</option><option value="26排">26排</option>
+      <option value="27排">27排</option><option value="28排">28排</option>
+      <option value="29排">29排</option><option value="30排">30排</option>
+      <option value="31排">31排</option><option value="32排">32排</option>
+      <option value="33排">33排</option><option value="34排">34排</option>
+      <option value="35排">35排</option><option value="36排">36排</option>
+      <option value="37排">37排</option>
+      <option value="A排">A排</option><option value="B排">B排</option>`;
+  }
+
+  function addRowGroup() {
+    if (rowGroupCount >= MAX_GROUPS) return;
+    const idx = rowGroupCount;
+    rowGroupCount++;
+    const div = document.createElement('div');
+    div.className = 'row-group';
+    div.id = 'rg-' + idx;
+    div.innerHTML = `
+      <div class="row-group-header">
+        <select class="rg-select" onchange="onRowGroupChange(${idx})">${getRowOptions()}</select>
+        <span class="rg-remove" onclick="removeRowGroup(${idx})">✕</span>
+      </div>
+      <div class="rg-stalls" id="rg-stalls-${idx}">
+        <span class="rg-placeholder">選排後顯示格號</span>
+      </div>`;
+    document.getElementById('row-groups').appendChild(div);
+    if (rowGroupCount >= MAX_GROUPS) {
+      document.getElementById('btn-add-row').disabled = true;
     }
     updateStep();
   }
 
+  function removeRowGroup(idx) {
+    const el = document.getElementById('rg-' + idx);
+    if (el) el.remove();
+    rowGroupCount--;
+    document.getElementById('btn-add-row').disabled = false;
+    updateStep();
+  }
+
+  function onRowGroupChange(idx) {
+    const sel = document.querySelector('#rg-' + idx + ' .rg-select');
+    const container = document.getElementById('rg-stalls-' + idx);
+    const row = sel.value;
+    container.innerHTML = '';
+    // Show remove button if not first group
+    const removeBtn = document.querySelector('#rg-' + idx + ' .rg-remove');
+    if (removeBtn) removeBtn.style.display = idx === 0 ? 'none' : 'inline';
+    if (row && ROW_STALLS[row]) {
+      const stalls = ROW_STALLS[row];
+      const list = typeof stalls === 'number'
+        ? Array.from({length: stalls}, (_, i) => String(i + 1))
+        : stalls.map(String);
+      list.forEach(s => {
+        const id = 'stall_' + idx + '_' + s;
+        const inp = document.createElement('input');
+        inp.type = 'checkbox'; inp.className = 'stall-check';
+        inp.id = id; inp.value = s;
+        inp.dataset.group = idx;
+        inp.addEventListener('change', updateStep);
+        const lbl = document.createElement('label');
+        lbl.htmlFor = id; lbl.textContent = s;
+        container.appendChild(inp); container.appendChild(lbl);
+      });
+    } else {
+      container.innerHTML = '<span class="rg-placeholder">選排後顯示格號</span>';
+    }
+    updateStep();
+  }
+
+  // Init first group remove button visibility
+  document.querySelector('#rg-0 .rg-remove').style.display = 'none';
+
+  function getAllStallGroups() {
+    // Returns array of {row, stalls[]}
+    const groups = [];
+    document.querySelectorAll('.row-group').forEach(grpEl => {
+      const idx = grpEl.id.replace('rg-','');
+      const sel = grpEl.querySelector('.rg-select');
+      const row = sel ? sel.value : '';
+      if (!row) return;
+      const stalls = Array.from(grpEl.querySelectorAll('.stall-check:checked')).map(el => el.value);
+      if (stalls.length > 0) groups.push({row, stalls});
+    });
+    return groups;
+  }
+
   function updateStep() {
     const days = getSelectedDays();
-    const row = document.getElementById('row_number').value;
-    const num = document.getElementById('stall_number').value;
+    const groups = getAllStallGroups();
     const name = document.getElementById('stall_name').value.trim();
 
     const dot0 = document.getElementById('dot0');
     const dot1 = document.getElementById('dot1');
     const dot2 = document.getElementById('dot2');
 
-    if (days.length && row && num) {
+    if (days.length && groups.length) {
       dot0.className = 'step-dot done';
       dot1.className = 'step-dot active';
     }
-    if (days.length && row && num && name) {
+    if (days.length && groups.length && name) {
       dot1.className = 'step-dot done';
       dot2.className = 'step-dot active';
     }
@@ -744,13 +956,12 @@
     hideStatus();
 
     const days = getSelectedDays();
-    const row = document.getElementById('row_number').value;
-    const num = document.getElementById('stall_number').value;
+    const groups = getAllStallGroups();
     const name = document.getElementById('stall_name').value.trim();
+    const category = document.querySelector('input[name="category"]:checked')?.value || null;
 
     if (!days.length) { showStatus('請選擇擺攤星期', 'error'); return; }
-    if (!row) { showStatus('請選擇排數', 'error'); return; }
-    if (!num) { showStatus('請選擇攤號', 'error'); return; }
+    if (!groups.length) { showStatus('請選擇排數和攤號', 'error'); return; }
     if (!name) { showStatus('請填寫攤名', 'error'); return; }
 
     const btn = document.getElementById('submitBtn');
@@ -778,11 +989,10 @@
       }
 
       const dayStr = days.join('、');
-      const record = {
+      const base = {
         day_of_week: dayStr,
-        row_number: row,
-        stall_number: num,
         stall_name: name,
+        category: category,
         products: document.getElementById('products').value.trim() || null,
         description: document.getElementById('description').value.trim() || null,
         contact_name: document.getElementById('contact_name').value.trim() || null,
@@ -796,8 +1006,17 @@
         is_active: true
       };
 
-      const { error: insertError } = await supabaseClient.from('vendors').insert([record]);
+      // Build one record per stall (each group × each stall)
+      const records = [];
+      groups.forEach(g => {
+        g.stalls.forEach(s => {
+          records.push({ ...base, row_number: g.row, stall_number: s });
+        });
+      });
+      const { error: insertError } = await supabaseClient.from('vendors').insert(records);
       if (insertError) throw new Error('資料儲存失敗：' + insertError.message);
+      const stallSummary = groups.map(g => g.row + ' ' + g.stalls.join('、') + '號').join('；');
+      const record = { ...base, stall_number: stallSummary };
 
       // Success
       document.getElementById('formContent').style.display = 'none';
@@ -806,8 +1025,9 @@
 
       document.getElementById('successDetail').innerHTML = `
         <div class="success-detail-row"><span>星期</span><span>${dayStr}</span></div>
-        <div class="success-detail-row"><span>攤位</span><span>${row} ${num}號</span></div>
+        <div class="success-detail-row"><span>攤位</span><span>${stallSummary}（共${records.length}格）</span></div>
         <div class="success-detail-row"><span>攤名</span><span>${name}</span></div>
+        ${category ? `<div class="success-detail-row"><span>類別</span><span>${category}</span></div>` : ''}
         ${record.products ? `<div class="success-detail-row"><span>商品</span><span>${record.products}</span></div>` : ''}
         ${photoUrl ? `<div class="success-detail-row"><span>照片</span><span>✓ 已上傳</span></div>` : ''}
       `;
@@ -825,9 +1045,20 @@
     ['day_thu','day_fri','day_sat','day_sun'].forEach(id => {
       document.getElementById(id).checked = false;
     });
-    document.getElementById('row_number').value = '';
-    document.getElementById('stall_number').innerHTML = '<option value="">請先選排</option>';
-    document.getElementById('stall_number').value = '';
+    // Reset row groups
+    document.getElementById('row-groups').innerHTML = `
+      <div class="row-group" id="rg-0">
+        <div class="row-group-header">
+          <select class="rg-select" onchange="onRowGroupChange(0)">${getRowOptions()}</select>
+          <span class="rg-remove" onclick="removeRowGroup(0)" style="display:none">✕</span>
+        </div>
+        <div class="rg-stalls" id="rg-stalls-0">
+          <span class="rg-placeholder">選排後顯示格號</span>
+        </div>
+      </div>`;
+    rowGroupCount = 1;
+    document.getElementById('btn-add-row').disabled = false;
+    document.querySelectorAll('input[name="category"]').forEach(el => el.checked = false);
     document.getElementById('stall_name').value = '';
     document.getElementById('products').value = '';
     document.getElementById('description').value = '';
