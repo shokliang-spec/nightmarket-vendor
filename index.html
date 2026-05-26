@@ -684,6 +684,17 @@
       </div>
     </div>
 
+    <!-- Section 2b: 攤商屬性 -->
+    <div class="section">
+      <div class="section-title">攤商屬性</div>
+      <div class="cat-checks">
+        <input class="cat-check" type="radio" name="stall_type" id="cat_temp" value="臨時攤">
+        <label for="cat_temp">🪧 臨時攤（非格主）</label>
+        <input class="cat-check" type="radio" name="stall_type" id="cat_fixed" value="固定攤">
+        <label for="cat_fixed">🏪 固定攤（攤商即格主）</label>
+      </div>
+    </div>
+
     <!-- Section 3: 攤商資料 -->
     <div class="section">
       <div class="section-title">攤商資料</div>
@@ -959,6 +970,7 @@
     const groups = getAllStallGroups();
     const name = document.getElementById('stall_name').value.trim();
     const category = document.querySelector('input[name="category"]:checked')?.value || null;
+    const stall_type = document.querySelector('input[name="stall_type"]:checked')?.value || null;
 
     if (!days.length) { showStatus('請選擇擺攤星期', 'error'); return; }
     if (!groups.length) { showStatus('請選擇排數和攤號', 'error'); return; }
@@ -993,6 +1005,7 @@
         day_of_week: dayStr,
         stall_name: name,
         category: category,
+        stall_type: stall_type,
         products: document.getElementById('products').value.trim() || null,
         description: document.getElementById('description').value.trim() || null,
         contact_name: document.getElementById('contact_name').value.trim() || null,
@@ -1059,6 +1072,7 @@
     rowGroupCount = 1;
     document.getElementById('btn-add-row').disabled = false;
     document.querySelectorAll('input[name="category"]').forEach(el => el.checked = false);
+    document.querySelectorAll('input[name="stall_type"]').forEach(el => el.checked = false);
     document.getElementById('stall_name').value = '';
     document.getElementById('products').value = '';
     document.getElementById('description').value = '';
