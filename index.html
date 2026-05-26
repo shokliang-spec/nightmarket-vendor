@@ -563,6 +563,51 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Edit mode */
+    .edit-record {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .edit-record:hover { border-color: var(--gold-dim); }
+    .edit-record.selected { border-color: var(--gold); background: rgba(212,168,67,0.08); }
+    .edit-record-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+    .edit-record-meta { font-size: 0.78rem; color: var(--text-dim); margin-top: 3px; }
+    .lookup-screen { display: none; }
+    .lookup-screen.show { display: block; }
+    .btn-lookup {
+      width: 100%;
+      padding: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+    .btn-lookup:hover { border-color: var(--gold-dim); color: var(--gold); }
+    .mode-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .mode-tab {
+      flex: 1; padding: 10px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text-dim);
+      font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .mode-tab.active { border-color: var(--gold); background: rgba(212,168,67,0.1); color: var(--gold); font-weight: 600; }
+    .edit-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      background: rgba(212,168,67,0.15); color: var(--gold);
+      font-size: 0.75rem; margin-bottom: 12px;
+    }
+
     /* Mobile refinements */
     @media (max-width: 400px) {
       .select-group { grid-template-columns: 1fr; }
@@ -589,15 +634,41 @@
 
   <!-- Success screen -->
   <div class="success-screen" id="successScreen">
-    <div class="success-icon">✅</div>
-    <h2>登錄成功！</h2>
-    <p>您的攤商資料已送出<br>格主將會收到通知</p>
+    <div class="success-icon" id="successIcon">✅</div>
+    <h2 id="successTitle">登錄成功！</h2>
+    <p id="successMsg">您的攤商資料已送出<br>格主將會收到通知</p>
     <div class="success-detail" id="successDetail"></div>
     <button class="btn-again" onclick="resetForm()">再次填寫</button>
   </div>
 
+  <!-- Mode tabs -->
+  <div class="mode-tabs" id="modeTabs">
+    <button class="mode-tab active" onclick="switchMode('new')">📝 填寫新資料</button>
+    <button class="mode-tab" onclick="switchMode('edit')">✏️ 修改資料</button>
+  </div>
+
+  <!-- Lookup screen -->
+  <div class="lookup-screen" id="lookupScreen">
+    <div class="section">
+      <div class="section-title">查詢您的資料</div>
+      <div class="field">
+        <label>請輸入您的聯絡電話</label>
+        <input type="tel" id="lookupPhone" placeholder="09xx-xxx-xxx" maxlength="20"
+          onkeydown="if(event.key==='Enter')doLookup()">
+      </div>
+      <button class="btn-submit" style="margin-top:8px" onclick="doLookup()" id="lookupBtn">查詢</button>
+      <div class="status" id="lookupStatus"></div>
+    </div>
+    <div id="lookupResults"></div>
+  </div>
+
   <!-- Form -->
   <div class="form-content" id="formContent">
+
+    <!-- Edit mode badge -->
+    <div id="editBadge" style="display:none">
+      <div class="edit-badge">✏️ 修改模式：正在編輯 <span id="editingName"></span></div>
+    </div>
 
     <!-- Section 1: 攤位位置 -->
     <div class="section">
@@ -776,6 +847,7 @@
     </div>
 
     <!-- Submit -->
+    <input type="hidden" id="editingId">
     <button class="btn-submit" id="submitBtn" onclick="submitForm()">
       送出登錄資料
     </button>
@@ -1020,21 +1092,42 @@
       };
 
       // Build one record per stall (each group × each stall)
-      const records = [];
-      groups.forEach(g => {
-        g.stalls.forEach(s => {
-          records.push({ ...base, row_number: g.row, stall_number: s });
+      const editId = document.getElementById('editingId').value;
+      let stallSummary, record;
+      if (editId) {
+        // Edit mode: PATCH existing record
+        const { error: updateError } = await supabaseClient
+          .from('vendors').update(base).eq('id', editId);
+        if (updateError) throw new Error('資料更新失敗：' + updateError.message);
+        stallSummary = '已更新';
+        record = base;
+      } else {
+        // New mode: INSERT records
+        const records = [];
+        groups.forEach(g => {
+          g.stalls.forEach(s => {
+            records.push({ ...base, row_number: g.row, stall_number: s });
+          });
         });
-      });
-      const { error: insertError } = await supabaseClient.from('vendors').insert(records);
-      if (insertError) throw new Error('資料儲存失敗：' + insertError.message);
-      const stallSummary = groups.map(g => g.row + ' ' + g.stalls.join('、') + '號').join('；');
-      const record = { ...base, stall_number: stallSummary };
+        const { error: insertError } = await supabaseClient.from('vendors').insert(records);
+        if (insertError) throw new Error('資料儲存失敗：' + insertError.message);
+        stallSummary = groups.map(g => g.row + ' ' + g.stalls.join('、') + '號').join('；');
+        record = { ...base, stall_number: stallSummary };
+      }
 
       // Success
       document.getElementById('formContent').style.display = 'none';
       const successScreen = document.getElementById('successScreen');
       successScreen.classList.add('show');
+      if (editId) {
+        document.getElementById('successIcon').textContent = '✏️';
+        document.getElementById('successTitle').textContent = '更新成功！';
+        document.getElementById('successMsg').textContent = '您的攤商資料已更新';
+      } else {
+        document.getElementById('successIcon').textContent = '✅';
+        document.getElementById('successTitle').textContent = '登錄成功！';
+        document.getElementById('successMsg').innerHTML = '您的攤商資料已送出<br>格主將會收到通知';
+      }
 
       document.getElementById('successDetail').innerHTML = `
         <div class="success-detail-row"><span>星期</span><span>${dayStr}</span></div>
@@ -1050,6 +1143,117 @@
       btn.disabled = false;
       btn.innerHTML = '送出登錄資料';
     }
+  }
+
+  /* ── Edit mode ── */
+  let currentMode = 'new';
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach((t,i) => {
+      t.classList.toggle('active', (i===0 && mode==='new') || (i===1 && mode==='edit'));
+    });
+    document.getElementById('lookupScreen').classList.toggle('show', mode==='edit');
+    document.getElementById('formContent').style.display = mode==='new' ? 'block' : 'none';
+    if (mode==='new') clearEditMode();
+  }
+
+  async function doLookup() {
+    const phone = document.getElementById('lookupPhone').value.trim();
+    if (!phone) { showLookupStatus('請輸入電話號碼', 'error'); return; }
+    const btn = document.getElementById('lookupBtn');
+    btn.disabled = true; btn.textContent = '查詢中…';
+    showLookupStatus('', '');
+    document.getElementById('lookupResults').innerHTML = '';
+    try {
+      const res = await supabaseClient
+        .from('vendors')
+        .select('*')
+        .eq('contact_phone', phone)
+        .eq('is_active', true);
+      if (res.error) throw new Error(res.error.message);
+      const rows = res.data || [];
+      if (!rows.length) {
+        showLookupStatus('找不到此電話的資料，請確認電話號碼是否正確', 'error');
+      } else {
+        renderLookupResults(rows);
+      }
+    } catch(e) {
+      showLookupStatus('查詢失敗：' + e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '查詢';
+    }
+  }
+
+  function renderLookupResults(rows) {
+    const container = document.getElementById('lookupResults');
+    container.innerHTML = '<div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:10px">找到 ' + rows.length + ' 筆資料，請選擇要修改的項目：</div>';
+    rows.forEach(function(v) {
+      const div = document.createElement('div');
+      div.className = 'edit-record';
+      div.innerHTML = '<div class="edit-record-name">' + (v.stall_name||'（未填攤名）') + '</div>' +
+        '<div class="edit-record-meta">' + v.row_number + ' ' + v.stall_number + '號 ／ ' + (v.day_of_week||'') + (v.category?' ／ '+v.category:'') + '</div>';
+      div.onclick = function() {
+        document.querySelectorAll('.edit-record').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        loadEditRecord(v);
+      };
+      container.appendChild(div);
+    });
+  }
+
+  function loadEditRecord(v) {
+    // Switch to form view
+    document.getElementById('formContent').style.display = 'block';
+    document.getElementById('editingId').value = v.id;
+    document.getElementById('editingName').textContent = v.stall_name || '（未填攤名）';
+    document.getElementById('editBadge').style.display = 'block';
+    document.getElementById('submitBtn').textContent = '更新資料';
+
+    // Fill days
+    ['day_thu','day_fri','day_sat','day_sun'].forEach(id => {
+      document.getElementById(id).checked = false;
+    });
+    const days = (v.day_of_week||'').split('、');
+    const dayMap = {'週四':'day_thu','週五':'day_fri','週六':'day_sat','週日':'day_sun'};
+    days.forEach(d => { if(dayMap[d.trim()]) document.getElementById(dayMap[d.trim()]).checked = true; });
+
+    // Fill category & stall_type
+    document.querySelectorAll('input[name="category"]').forEach(el => el.checked = el.value === v.category);
+    document.querySelectorAll('input[name="stall_type"]').forEach(el => el.checked = el.value === v.stall_type);
+
+    // Fill stall info
+    document.getElementById('stall_name').value = v.stall_name || '';
+    document.getElementById('products').value = v.products || '';
+    document.getElementById('description').value = v.description || '';
+    document.getElementById('contact_name').value = v.contact_name || '';
+    document.getElementById('contact_phone').value = v.contact_phone || '';
+    document.getElementById('line_id').value = v.line_id || '';
+    document.getElementById('facebook').value = v.facebook || '';
+    document.getElementById('instagram').value = v.instagram || '';
+    document.getElementById('tiktok').value = v.tiktok || '';
+    document.getElementById('threads').value = v.threads || '';
+
+    // Update char counters
+    ['stall_name','products','description'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.dispatchEvent(new Event('input'));
+    });
+
+    // Scroll to form
+    document.getElementById('formContent').scrollIntoView({behavior:'smooth'});
+  }
+
+  function clearEditMode() {
+    document.getElementById('editingId').value = '';
+    document.getElementById('editBadge').style.display = 'none';
+    document.getElementById('submitBtn').textContent = '送出登錄資料';
+  }
+
+  function showLookupStatus(msg, type) {
+    const el = document.getElementById('lookupStatus');
+    el.className = 'status ' + type;
+    el.innerHTML = msg;
   }
 
   function resetForm() {
@@ -1092,6 +1296,8 @@
       document.getElementById(id).className = 'step-dot' + (i===0 ? ' active' : '');
     });
     hideStatus();
+    clearEditMode();
+    switchMode('new');
     const btn = document.getElementById('submitBtn');
     btn.disabled = false;
     btn.innerHTML = '送出登錄資料';
